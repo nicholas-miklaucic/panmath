@@ -1,0 +1,4 @@
+#+TITLE: Panmath
+#+AUTHOR: Nicholas Miklaucic
+
+~pandoc~, but for math: a way of parsing the kind of ASCII text that people write math in without LaTeX and converting it to either prettified Unicode output or LaTeX.
