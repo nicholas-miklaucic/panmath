@@ -5,13 +5,14 @@ use std::collections::HashMap;
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_till, take_until};
 use nom::character::complete::{self, char, i64, space0, space1};
-use nom::combinator::{cond, fail, peek, recognize};
+use nom::combinator::{cond, fail, map, peek, recognize};
 use nom::error::{Error, ParseError};
+use nom::multi::separated_list0;
 use nom::number::complete::double;
 use nom::sequence::{delimited, pair, preceded, separated_pair, tuple};
 use nom::{IResult, InputTake};
 
-use crate::ast::{BinaryOp, Symbol, UnaryOp, AST};
+use crate::ast::{BinaryOp, Symbol, SymbolBinaryOp, UnaryOp, AST};
 use crate::symbols::ALL_SYMBOLS;
 
 /// Parses a predefined Symbol.
@@ -80,17 +81,86 @@ pub fn parse_frac(input: &str) -> IResult<&str, AST> {
     }
 }
 
+/// Parses a symbol for a binary operation.
+pub fn parse_symbol_binary_op(input: &str) -> IResult<&str, SymbolBinaryOp> {
+    map(
+        parse_symbol_from_list(crate::symbols::BINARY_OPS.clone()),
+        |x| SymbolBinaryOp {
+            symbol: x,
+            fixity: crate::ast::Fixity::Infix,
+        },
+    )(input)
+}
+
+/// Matches a pattern, with the condition that it cannot be inside parentheses. Returns the index if it exists.
+pub fn find_outer(pattern: &str, input: &str) -> Option<usize> {
+    let mut layers_deep = 0;
+    if input.len() < pattern.len() {
+        return None;
+    }
+    for i in 0..input.len() - pattern.len() {
+        match input.get(i..i + 1) {
+            Some("(") => {
+                layers_deep += 1;
+            }
+            Some(")") => {
+                layers_deep -= 1;
+            }
+            Some(_) => {
+                if input.get(i..i + pattern.len()) == Some(pattern) && layers_deep == 0 {
+                    return Some(i);
+                }
+            }
+            _ => continue,
+        };
+    }
+    None
+}
+
+/// Searches for a specific symbol as the root of the AST.
+pub fn parse_specific_binary_op<'a>(symbol: Symbol, input: &'a str) -> IResult<&'a str, AST> {
+    for repr in symbol.reprs() {
+        if let Some(i) = find_outer(repr, input) {
+            let (_, expr1) = parse_expr(input.get(0..i).unwrap())?;
+            let (rest, expr2) = parse_expr(input.get(i + repr.len()..).unwrap())?;
+            return Ok((
+                rest,
+                AST::BinaryExpr(
+                    crate::ast::BinaryOp::Generic(SymbolBinaryOp {
+                        symbol,
+                        fixity: crate::ast::Fixity::Infix,
+                    }),
+                    Box::new(expr1),
+                    Box::new(expr2),
+                ),
+            ));
+        }
+    }
+    fail(input)
+}
+
+/// Parses the outermost layer of the expression if it matches a binary operator.
+pub fn parse_binary_expr(input: &str) -> IResult<&str, AST> {
+    for symbol in crate::symbols::BINARY_OPS.clone().into_iter() {
+        let res = parse_specific_binary_op(symbol, input);
+        if res.is_ok() {
+            return res;
+        }
+    }
+    fail(input)
+}
+
 /// Parses a generic expression.
 pub fn parse_expr(input: &str) -> IResult<&str, AST> {
     // Order is very important here, because anything can be a symbol, and some
     // operations like division need to be parsed specially and caught before
     // the generic versions would apply.
     alt((
-        parse_spaces,
-        parse_parens,
-        parse_frac,
+        parse_binary_expr,
         parse_special_function,
+        parse_frac,
         parse_number,
+        parse_parens,
         nom::Parser::map(parse_symbol_from_list(crate::symbols::MISC.clone()), |x| {
             AST::Sym(x)
         }),
@@ -102,6 +172,7 @@ pub fn parse_expr(input: &str) -> IResult<&str, AST> {
             parse_symbol_from_map(crate::symbols::LATIN_SYMBOLS.clone()),
             |x| AST::Sym(x),
         ),
+        parse_spaces,
     ))(input)
 }
 
@@ -143,6 +214,21 @@ mod tests {
             Ok((" b", crate::symbols::NEQ.clone()))
         );
     }
+
+    // figure out how to parse this
+    // #[test]
+    // fn test_spaces() {
+    //     assert_eq!(
+    //         parse_expr("sin x degrees"),
+    //         Ok((
+    //             "",
+    //             AST::UnaryExpr(
+    //                 UnaryOp::Generic(crate::symbols::SPECIAL_FUNCS.get("sin").unwrap().clone()),
+    //                 Box::new(AST::Number("40.2".into()))
+    //             )
+    //         ))
+    //     );
+    // }
 
     #[test]
     fn test_frac() {

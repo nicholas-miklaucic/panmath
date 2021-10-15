@@ -221,25 +221,27 @@ lazy_static! {
      */
 
     /// The ≤ (less than or equal to) symbol.
-    pub static ref LE: Symbol = Symbol::new("≤", "<=", r"\le", vec!["le"]);
+    pub static ref LE: Symbol = Symbol::new("≤", "<=", r"\le", vec![" le"]);
     /// The ≥ (greater than or equal to) symbol.
-    pub static ref GE: Symbol = Symbol::new("≥", ">=", r"\ge", vec!["ge"]);
+    pub static ref GE: Symbol = Symbol::new("≥", ">=", r"\ge", vec![" ge"]);
     /// The ≠ (not equal to) symbol.
-    pub static ref NEQ: Symbol = Symbol::new("≠", "!=", r"\neq", vec!["=/=", "/=", "neq"]);
+    pub static ref NEQ: Symbol = Symbol::new("≠", "!=", r"\neq", vec!["=/=", "/=", " neq"]);
     /// The ± (plus or minus) symbol.
-    pub static ref PM: Symbol = Symbol::new("±", "+/-", r"\pm", vec!["+-", "pm"]);
+    pub static ref PM: Symbol = Symbol::new("±", "+/-", r"\pm", vec!["+-", " pm"]);
     /// The ∞ (infinity) symbol.
-    pub static ref INF: Symbol = Symbol::new("∞", "inf", r"\infty", vec!["infinity"]);
+    pub static ref INF: Symbol = Symbol::new("∞", " inf", r"\infty", vec!["infinity"]);
     /// The ∈ (element of) symbol.
     // the question is whether to add E here so a E A becomes a ∈ A. I think it's about 50/50 in the
     // server on whether people do this or not, so I've left it out.
-    pub static ref ELEM: Symbol = Symbol::new("∈", "in", r"\in", vec!["elem"]);
+    pub static ref ELEM: Symbol = Symbol::new("∈", " in", r"\in", vec![" elem"]);
     /// The ∼ (distributed as) symbol.
     pub static ref SYM: Symbol = Symbol::new("∼", "~", r"\sym", vec![]);
     /// The ≅ (approximately equal to) symbol.
     pub static ref APPROX: Symbol = Symbol::new("≅", "~=", r"\approx", vec![]);
     /// The multiplication symbol, using a dot instead of the times operator.
-    pub static ref MULT: Symbol = Symbol::new("·", "*", r"\cdot", vec!["times", "\times", "×"]);
+    pub static ref MULT: Symbol = Symbol::new("·", "*", r"\cdot", vec![" times", "\times", "×"]);
+    /// The ° (degrees) symbol.
+    pub static ref DEGREE: Symbol = Symbol::new("°", "o", r"^{\circ}", vec![" deg", " degrees"]);
     // TODO add more
 
     /// The miscellaneous symbols.
@@ -254,23 +256,38 @@ lazy_static! {
             SYM.clone(),
             APPROX.clone(),
             MULT.clone(),
+            DEGREE.clone(),
         ]
     };
 
-    /// All of the binary operator symbols.
+    /// All of the binary operator symbols, ordered from least precedent to most precedent.
     pub static ref BINARY_OPS: Vec<Symbol> = {
         vec![
+            APPROX.clone(),
             LE.clone(),
             GE.clone(),
+            SYM.clone(),
+            ELEM.clone(),
             NEQ.clone(),
             PM.clone(),
-            ELEM.clone(),
-            SYM.clone(),
-            APPROX.clone(),
             "+".into(),
             "-".into(),
             MULT.clone(),
         ]
+    };
+
+    /// All of the unary operator symbols, ordered from least precedent to most precedent. These
+    /// take precedence over all of the binary operations before and including division.
+    pub static ref UNARY_OPS: Vec<Symbol> = {
+        let mut sym = vec![
+            PM.clone(),
+            "+".into(),
+            "-".into(),
+        ];
+        for val in SPECIAL_FUNCS.clone().into_values() {
+            sym.push(val);
+        }
+        sym
     };
 
 

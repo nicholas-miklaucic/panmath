@@ -90,11 +90,20 @@ mod tests {
 
     #[test]
     fn test_parse() {
-        let (_rest, tree) = parse_expr("2 / (sin mu)").unwrap();
-        let (_rest, tree) = parse_expr("2 / arccos mu)").unwrap();
+        let (_rest, tree) = parse_expr("2 / (sin mu + 1)").unwrap();
         assert_eq!(
             LatexFormatter::default().format(&tree),
-            r"\frac{ 2 }{ \sin \mu }".to_string()
+            r"\frac{ 2 }{ \sin \mu + 1 }".to_string()
+        );
+        let (_rest, tree) = parse_expr("2 / sin mu * 1").unwrap();
+        assert_eq!(
+            LatexFormatter::default().format(&tree),
+            r"\frac{ 2 }{ \sin \mu } \cdot 1".to_string()
+        );
+        let (_rest, tree) = parse_expr("2 / arccos mu + 1").unwrap();
+        assert_eq!(
+            LatexFormatter::default().format(&tree),
+            r"\frac{ 2 }{ \arccos \mu } + 1".to_string()
         );
     }
 }
