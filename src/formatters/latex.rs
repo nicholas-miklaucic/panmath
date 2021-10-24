@@ -29,15 +29,15 @@ impl crate::formatter::Formatter for LatexFormatter {
             ast::BinaryOp::Generic(ast::SymbolBinaryOp { symbol, fixity }) => {
                 let sym = self.format_symbol(symbol);
                 match fixity {
-                    ast::Fixity::Prefix => format!("{} {} {}", sym, left, right),
-                    ast::Fixity::Infix => format!("{} {} {}", left, sym, right),
-                    ast::Fixity::Postfix => format!("{} {} {}", left, right, sym),
+                    ast::Fixity::Prefix => format!("\\left({} {} {}\\right)", sym, left, right),
+                    ast::Fixity::Infix => format!("\\left({} {} {}\\right)", left, sym, right),
+                    ast::Fixity::Postfix => format!("\\left({} {} {}\\right)", left, right, sym),
                 }
             }
-            ast::BinaryOp::Power => format!("\\left({}\\right)^{{ {} }}", left, right),
+            ast::BinaryOp::Power => format!("{}^{{ {} }}", left, right),
             ast::BinaryOp::Frac => format!("\\frac{{ {} }}{{ {} }}", left, right),
             ast::BinaryOp::Log => format!("\\log_{{ {} }} \\left( {} \\right)", left, right),
-            ast::BinaryOp::Concat => format!(r"\left({}\right)\left({}\right)", left, right),
+            ast::BinaryOp::Concat => format!(r"{}{}", left, right),
         }
     }
 

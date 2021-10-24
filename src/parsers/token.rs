@@ -92,7 +92,16 @@ impl Tokenizer {
                 Some(Token::Delim(Delimiter { dir, kind: _ })) if dir == &DelimDir::Right => {
                     operators::BINARY_OPS.clone()
                 }
-                _ => operators::UNARY_OPS.clone(),
+                _ => {
+                    // If there's an unrecognized symbol being built up, then we can't search for
+                    // unary operators: if we're in the middle of a-b, we should realize that - is a
+                    // binary operator
+                    if curr_unknown.is_empty() {
+                        operators::UNARY_OPS.clone()
+                    } else {
+                        operators::BINARY_OPS.clone()
+                    }
+                }
             };
             // match operators next: they tend not to conflict with other
             // things, and the bigger words will get mangled by future
