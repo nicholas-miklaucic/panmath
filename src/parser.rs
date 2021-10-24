@@ -150,6 +150,17 @@ pub fn parse_binary_expr(input: &str) -> IResult<&str, AST> {
     fail(input)
 }
 
+/// Parses the string as a new Symbol. Never fails so long as there is a non-whitespace character.
+pub fn parse_new_symbol(input: &str) -> IResult<&str, AST> {
+    let sym = input.trim();
+    if sym.is_empty() {
+        fail(input)
+    } else {
+        let sym: Symbol = sym.into();
+        Ok(("", AST::Sym(sym)))
+    }
+}
+
 /// Parses a generic expression.
 pub fn parse_expr(input: &str) -> IResult<&str, AST> {
     // Order is very important here, because anything can be a symbol, and some
@@ -159,7 +170,7 @@ pub fn parse_expr(input: &str) -> IResult<&str, AST> {
         parse_binary_expr,
         parse_special_function,
         parse_frac,
-        parse_number,
+        parse_spaces,
         parse_parens,
         nom::Parser::map(parse_symbol_from_list(crate::symbols::MISC.clone()), |x| {
             AST::Sym(x)
@@ -172,7 +183,8 @@ pub fn parse_expr(input: &str) -> IResult<&str, AST> {
             parse_symbol_from_map(crate::symbols::LATIN_SYMBOLS.clone()),
             |x| AST::Sym(x),
         ),
-        parse_spaces,
+        parse_new_symbol,
+        parse_number,
     ))(input)
 }
 

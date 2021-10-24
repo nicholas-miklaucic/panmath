@@ -20,7 +20,7 @@ pub enum AST {
 
 /// A generic symbol. Can have multiple different representations, with a preferred one
 /// used for specific types of output but with all forms acceptable as input.
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Symbol {
     /// The preferred Unicode representation.
     pub unicode_repr: String,
@@ -62,6 +62,17 @@ impl Symbol {
         );
         reprs
     }
+
+    /// Given a string, returns a matched prefix of that string if the prefix matches one of the
+    /// operator's representations and None otherwise.
+    pub fn match_front(&self, input: &str) -> Option<&str> {
+        for repr in self.reprs() {
+            if input.starts_with(repr) {
+                return Some(repr);
+            }
+        }
+        None
+    }
 }
 
 /// A specific kind of binary operation: prefix, infix, or postfix. This determines where the
@@ -97,6 +108,8 @@ pub enum BinaryOp {
     Frac,
     /// A logarithm with a specific base.
     Log,
+    /// Concatenation, represented with no operator at all.
+    Concat,
 }
 
 /// A unary operator. For simple ones like the logical not and unary minus/plus, this is just a
@@ -105,12 +118,4 @@ pub enum BinaryOp {
 pub enum UnaryOp {
     /// A generic unary operator with a given symbol.
     Generic(Symbol),
-}
-
-/// A function with an arbitrary number of arguments.
-pub struct Function {
-    /// The function name.
-    name: Symbol,
-    /// The function arguments.
-    args: Vec<AST>,
 }

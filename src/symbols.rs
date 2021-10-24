@@ -226,10 +226,22 @@ lazy_static! {
     pub static ref GE: Symbol = Symbol::new("≥", ">=", r"\ge", vec![" ge"]);
     /// The ≠ (not equal to) symbol.
     pub static ref NEQ: Symbol = Symbol::new("≠", "!=", r"\neq", vec!["=/=", "/=", " neq"]);
+    /// The + symbol.
+    pub static ref PLUS: Symbol = Symbol::new("+", "+", "+", vec!["plus"]);
+    /// The - symbol.
+    pub static ref MINUS: Symbol = Symbol::new("-", "−", "-", vec!["minus"]);
     /// The ± (plus or minus) symbol.
     pub static ref PM: Symbol = Symbol::new("±", "+/-", r"\pm", vec!["+-", " pm"]);
-    /// The ∞ (infinity) symbol.
-    pub static ref INF: Symbol = Symbol::new("∞", " inf", r"\infty", vec!["infinity"]);
+    /// The exponentiation symbol. This is not the binary XOR function, and is
+    /// also not used generically: exponentiation is special-cased.
+    pub static ref POWER: Symbol = Symbol::new("^", "^", r"\^{}", vec![]);
+
+    /// The division symbol. This is not the set difference or quotient group,
+    /// and generally using fractions is preferred.
+    pub static ref DIV: Symbol = Symbol::new("/", "/", r"/", vec![]);
+
+    // The ∞ (infinity) symbol.
+    pub static ref INF: Symbol = Symbol::new("∞", " inf", r"\infty", vec!["infinity", "oo"]);
     /// The ∈ (element of) symbol.
     // the question is whether to add E here so a E A becomes a ∈ A. I think it's about 50/50 in the
     // server on whether people do this or not, so I've left it out.
@@ -242,7 +254,28 @@ lazy_static! {
     pub static ref MULT: Symbol = Symbol::new("·", "*", r"\cdot", vec![" times", "\times", "×"]);
     /// The ° (degrees) symbol.
     pub static ref DEGREE: Symbol = Symbol::new("°", "o", r"^{\circ}", vec![" deg", " degrees"]);
+    /// The left parenthesis `(``.
+    pub static ref LEFT_PAR: Symbol = Symbol::new("(", "(", r"\left(", vec![]);
+    /// The right parenthesis `)``.
+    pub static ref RIGHT_PAR: Symbol = Symbol::new(")", ")", r"\right)", vec![]);
+    /// The left bracket `[``.
+    pub static ref LEFT_BRACKET: Symbol = Symbol::new("[", "[", r"\left[", vec![]);
+    /// The right bracket `]``.
+    pub static ref RIGHT_BRACKET: Symbol = Symbol::new("]", "]", r"\right]", vec![]);
+
+    // The comma symbol, needed for variadic functions.
+    pub static ref COMMA: Symbol = Symbol::from(",");
+
     // TODO add more
+
+    /// The delimiters.
+    pub static ref DELIMS: Vec<Symbol> = {
+        vec![
+            LEFT_PAR.clone(),
+            RIGHT_PAR.clone()
+        ]
+    };
+
 
     /// The miscellaneous symbols.
     pub static ref MISC: Vec<Symbol> = {
@@ -260,43 +293,13 @@ lazy_static! {
         ]
     };
 
-    /// All of the binary operator symbols, ordered from least precedent to most precedent.
-    pub static ref BINARY_OPS: Vec<Symbol> = {
-        vec![
-            APPROX.clone(),
-            LE.clone(),
-            GE.clone(),
-            SYM.clone(),
-            ELEM.clone(),
-            NEQ.clone(),
-            PM.clone(),
-            "+".into(),
-            "-".into(),
-            MULT.clone(),
-        ]
-    };
-
-    /// All of the unary operator symbols, ordered from least precedent to most precedent. These
-    /// take precedence over all of the binary operations before and including division.
-    pub static ref UNARY_OPS: Vec<Symbol> = {
-        let mut sym = vec![
-            PM.clone(),
-            "+".into(),
-            "-".into(),
-        ];
-        for val in SPECIAL_FUNCS.clone().into_values() {
-            sym.push(val);
-        }
-        sym
-    };
-
 
     /// All of the symbols that come pre-defined. This order controls the preference for parsing: if
     /// multiple symbols share a representation, the one that comes first matches.
     pub static ref ALL_SYMBOLS: Vec<Symbol> = {
         let mut symbols = vec![];
         for (_k, sym) in GREEK_SYMBOLS.clone().drain() {
-            symbols.push(sym    );
+            symbols.push(sym);
         }
         for (_k, sym) in LATIN_SYMBOLS.clone().drain() {
             symbols.push(sym);
