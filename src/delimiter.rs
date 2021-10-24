@@ -1,5 +1,7 @@
 //! File to deal with arbitrary delimiter pairs.
 
+use std::fmt::Display;
+
 use crate::{ast::Symbol, symbols};
 
 /// The delimiter direction: either left or right, simply enough.
@@ -28,6 +30,12 @@ pub struct Delimiter {
     pub dir: DelimDir,
     /// What kind of delimiter it is.
     pub kind: DelimKind,
+}
+
+impl Display for Delimiter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.get_symbol().unicode_repr)
+    }
 }
 
 impl Delimiter {

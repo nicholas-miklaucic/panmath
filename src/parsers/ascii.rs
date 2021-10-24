@@ -2,7 +2,7 @@
 
 use std::collections::VecDeque;
 
-use crate::ast::{BinaryOp, Fixity, SymbolBinaryOp, UnaryOp, AST};
+use crate::ast::{BinaryOp, Fixity, Symbol, SymbolBinaryOp, UnaryOp, AST};
 use crate::delimiter::{self, DelimDir, Delimiter};
 use crate::operators::Op;
 use crate::parsers::token::Token;
@@ -240,7 +240,19 @@ where
         let input = input.to_string();
         let tokens = self.tokenizer.tokenize(&input);
         let postfix = parse_into_postfix(tokens)?;
-        dbg!("{:?}", postfix.clone());
+        dbg!(
+            "{}",
+            postfix
+                .clone()
+                .into_iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join(" ")
+        );
+        dbg!(
+            "{:#?}",
+            parse_into_tree(postfix.clone()).unwrap_or(AST::Sym(Symbol::from("oops")))
+        );
         parse_into_tree(postfix)
     }
 }
