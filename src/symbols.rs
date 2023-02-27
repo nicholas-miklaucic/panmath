@@ -250,13 +250,13 @@ lazy_static! {
     /// The ≥ (greater than or equal to) symbol.
     pub static ref GE: Symbol = Symbol::new("≥", ">=", r"\ge", vec![" ge"]);
     /// The ≠ (not equal to) symbol.
-    pub static ref NEQ: Symbol = Symbol::new("≠", "!=", r"\neq", vec!["=/=", "/=", " neq"]);
+    pub static ref NEQ: Symbol = Symbol::new("≠", "!=", r"\neq", vec!["=/=", "/=", "neq"]);
     /// The + symbol.
     pub static ref PLUS: Symbol = Symbol::new("+", "+", "+", vec!["plus"]);
     /// The - symbol.
     pub static ref MINUS: Symbol = Symbol::new("-", "−", "-", vec!["minus"]);
     /// The ± (plus or minus) symbol.
-    pub static ref PM: Symbol = Symbol::new("±", "+/-", r"\pm", vec!["+-", " pm"]);
+    pub static ref PM: Symbol = Symbol::new("±", "+/-", r"\pm", vec!["+-", "pm"]);
     /// The exponentiation symbol. This is not the binary XOR function, and is
     /// also not used generically: exponentiation is special-cased.
     pub static ref POWER: Symbol = Symbol::new("^", "^", r"\^{}", vec![]);
@@ -278,7 +278,7 @@ lazy_static! {
     /// The multiplication symbol, using a dot instead of the times operator.
     pub static ref MULT: Symbol = Symbol::new("·", "*", r"\cdot", vec![" times", "\times", "×"]);
     /// The ° (degrees) symbol.
-    pub static ref DEGREE: Symbol = Symbol::new("°", "o", r"^{\circ}", vec![" deg", " degrees"]);
+    pub static ref DEGREE: Symbol = Symbol::new("°", "o", r"^{\circ}", vec!["deg", "degrees"]);
     /// The left parenthesis `(``.
     pub static ref LEFT_PAR: Symbol = Symbol::new("(", "(", r"\left(", vec![]);
     /// The right parenthesis `)``.

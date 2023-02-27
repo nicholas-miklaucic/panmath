@@ -144,8 +144,8 @@ pub fn parse_into_postfix(inputs: Vec<Token>) -> Result<VecDeque<Token>, ParseEr
 /// Given an AST, unpacks all outer , operators into a list.
 fn comma_sep_to_list(tree: AST) -> Vec<AST> {
     match tree {
-        AST::BinaryExpr(BinaryOp::Generic(SymbolBinaryOp { symbol, .. }), arg1, arg2)
-            if symbol == crate::symbols::COMMA.clone() =>
+        AST::BinaryExpr(BinaryOp::Generic(SymbolBinaryOp { op, .. }), arg1, arg2)
+            if op.sym == crate::symbols::COMMA.clone() =>
         {
             let mut args1 = comma_sep_to_list(*arg1);
             let mut args2 = comma_sep_to_list(*arg2);
@@ -185,7 +185,7 @@ pub fn parse_into_tree(tokens: VecDeque<Token>) -> Result<AST, ParseError> {
                             } else {
                                 AST::BinaryExpr(
                                     BinaryOp::Generic(SymbolBinaryOp {
-                                        symbol: op.sym,
+                                        op,
                                         fixity: Fixity::Infix,
                                     }),
                                     Box::new(arg1),

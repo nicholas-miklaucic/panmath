@@ -128,7 +128,7 @@ impl Tokenizer {
             for op in curr_ops.iter() {
                 println!(
                     "{} | {} | [{}]",
-                    &op.sym.ascii_repr,
+                    &op.sym.unicode_repr,
                     rest.clone(),
                     tokens
                         .iter()
@@ -136,7 +136,7 @@ impl Tokenizer {
                         .collect::<Vec<String>>()
                         .join(", ")
                 );
-                if let Some(repr) = op.match_front(rest) {
+                if let Some(repr) = dbg!(op.match_front(rest)) {
                     rest = &rest[repr.len()..];
                     // push previous unknown token onto list
                     if !curr_unknown.is_empty() {
@@ -184,12 +184,20 @@ impl Tokenizer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::operators::PM;
 
     #[test]
     fn test_tokenizing() {
-        let expr = "(1 + 2) ^ mu";
+        let expr = Tokenizer::default().tokenize("1 pm 2");
 
-        // println!("{:#?}", Tokenizer::default().tokenize(expr));
-        // assert_eq!(0, 1);
+        assert_eq!(
+            expr,
+            vec![
+                Token::Operand(Symbol::from("1")),
+                Token::Operator(PM.clone()),
+                Token::Operand(Symbol::from("2")),
+                Token::End
+            ]
+        )
     }
 }

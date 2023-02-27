@@ -227,21 +227,6 @@ mod tests {
         );
     }
 
-    // figure out how to parse this
-    // #[test]
-    // fn test_spaces() {
-    //     assert_eq!(
-    //         parse_expr("sin x degrees"),
-    //         Ok((
-    //             "",
-    //             AST::UnaryExpr(
-    //                 UnaryOp::Generic(crate::symbols::SPECIAL_FUNCS.get("sin").unwrap().clone()),
-    //                 Box::new(AST::Number("40.2".into()))
-    //             )
-    //         ))
-    //     );
-    // }
-
     #[test]
     fn test_frac() {
         assert_eq!(

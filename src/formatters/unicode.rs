@@ -1,6 +1,10 @@
 //! A Formatter for Unicode output.
 
-use crate::ast;
+use crate::{
+    ast::{self, SymbolBinaryOp},
+    formatters::precedence::need_parens,
+    operators::Op,
+};
 
 /// A formatter for Unicode that tries to use the Unicode math symbols wherever possible.
 #[derive(Default)]
@@ -23,15 +27,26 @@ impl crate::formatter::Formatter for UnicodeFormatter {
         arg1: &Box<ast::AST>,
         arg2: &Box<ast::AST>,
     ) -> Self::Output {
-        let left = self.format(&arg1.to_owned());
-        let right = self.format(&arg2.to_owned());
+        let (left_p, right_p) = need_parens(op, arg1, arg2);
+        let left_no_paren = self.format(&arg1.to_owned());
+        let left = if left_p {
+            format!("({})", left_no_paren)
+        } else {
+            format!("{}", left_no_paren)
+        };
+        let right_no_paren = self.format(&arg2.to_owned());
+        let right = if right_p {
+            format!("({})", right_no_paren)
+        } else {
+            format!("{}", right_no_paren)
+        };
         match op {
-            ast::BinaryOp::Generic(ast::SymbolBinaryOp { symbol, fixity }) => {
-                let sym = self.format_symbol(symbol);
+            ast::BinaryOp::Generic(SymbolBinaryOp { op, fixity }) => {
+                let symbol = self.format_symbol(&op.sym);
                 match fixity {
-                    ast::Fixity::Prefix => format!("({} {} {})", sym, left, right),
-                    ast::Fixity::Infix => format!("({} {} {})", left, sym, right),
-                    ast::Fixity::Postfix => format!("({} {} {})", left, right, sym),
+                    ast::Fixity::Prefix => format!("{} {} {}", symbol, left, right),
+                    ast::Fixity::Infix => format!("{} {} {}", left, symbol, right),
+                    ast::Fixity::Postfix => format!("{} {} {}", left, right, symbol),
                 }
             }
             ast::BinaryOp::Power => format!("{}^{}", left, right),
@@ -100,12 +115,12 @@ mod tests {
         let tree = parser.parse(&"2 / sin mu * 1".to_owned()).unwrap();
         assert_eq!(
             UnicodeFormatter::default().format(&tree),
-            r"(2 / sin(μ) · 1)".to_string()
+            r"2 / sin(μ) · 1".to_string()
         );
         let tree = parser.parse(&"2 / arccos mu + 1".to_owned()).unwrap();
         assert_eq!(
             UnicodeFormatter::default().format(&tree),
-            r"(2 / arccos(μ) + 1)".to_string()
+            r"2 / arccos(μ) + 1".to_string()
         );
     }
 }

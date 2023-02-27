@@ -1,6 +1,10 @@
 //! A Formatter for LaTeX.
 
-use crate::ast;
+use crate::{
+    ast::{self, SymbolBinaryOp},
+    formatters::precedence::need_parens,
+    operators::Op,
+};
 
 /// A formatter for LaTeX.
 #[derive(Default)]
@@ -23,20 +27,36 @@ impl crate::formatter::Formatter for LatexFormatter {
         arg1: &Box<ast::AST>,
         arg2: &Box<ast::AST>,
     ) -> Self::Output {
-        let left = self.format(&arg1.to_owned());
-        let right = self.format(&arg2.to_owned());
+        let (left_p, right_p) = need_parens(op, arg1, arg2);
+        let left_no_paren = self.format(&arg1.to_owned());
+        let left = if left_p {
+            format!("({})", left_no_paren)
+        } else {
+            format!("{}", left_no_paren)
+        };
+        let right_no_paren = self.format(&arg2.to_owned());
+        let right = if right_p {
+            format!("({})", right_no_paren)
+        } else {
+            format!("{}", right_no_paren)
+        };
         match op {
-            ast::BinaryOp::Generic(ast::SymbolBinaryOp { symbol, fixity }) => {
-                let sym = self.format_symbol(symbol);
+            ast::BinaryOp::Generic(SymbolBinaryOp { op, fixity }) => {
+                let symbol = self.format_symbol(&op.sym);
                 match fixity {
-                    ast::Fixity::Prefix => format!("{} {} {}", sym, left, right),
-                    ast::Fixity::Infix => format!("{} {} {}", left, sym, right),
-                    ast::Fixity::Postfix => format!("{} {} {}", left, right, sym),
+                    ast::Fixity::Prefix => format!("{} {} {}", symbol, left, right),
+                    ast::Fixity::Infix => format!("{} {} {}", left, symbol, right),
+                    ast::Fixity::Postfix => format!("{} {} {}", left, right, symbol),
                 }
             }
-            ast::BinaryOp::Power => format!("{}^{{ {} }}", left, right),
-            ast::BinaryOp::Frac => format!("\\frac{{ {} }}{{ {} }}", left, right),
-            ast::BinaryOp::Log => format!("\\log_{{ {} }} \\left( {} \\right)", left, right),
+            // superscript takes care of parenthesis need
+            ast::BinaryOp::Power => format!("{}^{{{}}}", left, right_no_paren),
+            // fractions never need parentheses for their outer arguments
+            ast::BinaryOp::Frac => format!("\\frac{{ {} }}{{ {} }}", left_no_paren, right_no_paren),
+            // log subscript means no paren is needed
+            ast::BinaryOp::Log => {
+                format!("\\log_{{ {} }} \\left( {} \\right)", left_no_paren, right)
+            }
             ast::BinaryOp::Concat => format!(r"{}{}", left, right),
         }
     }
@@ -94,10 +114,15 @@ mod tests {
             LatexFormatter::default().format(&tree),
             r"\frac{ 2 }{ \sin\left(\mu\right) + 1 }".to_string()
         );
-        let tree = parser.parse(&"cos^2(A) = sin^2(B)".to_owned()).unwrap();
+        let tree = parser.parse(&"mu ^ (3 * (4 + 5))".to_owned()).unwrap();
         assert_eq!(
             LatexFormatter::default().format(&tree),
-            r"\cos^2\left(A\right)=\sin^2\left(B\right)".to_string()
+            r"\mu^{3 \cdot (4 + 5)}".to_string()
+        );
+        let tree = parser.parse(&"cos^2(A) + sin^2(B)".to_owned()).unwrap();
+        assert_eq!(
+            LatexFormatter::default().format(&tree),
+            r"\cos^2\left(A\right) + \sin^2\left(B\right)".to_string()
         );
         let tree = parser.parse(&"2 / arccos mu + 1".to_owned()).unwrap();
         assert_eq!(

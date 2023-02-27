@@ -81,3 +81,13 @@ lazy_static! {
         ]
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pm() {
+        assert_eq!(PM.match_front("pm 2"), Some("pm"));
+    }
+}

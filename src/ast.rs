@@ -3,6 +3,8 @@
 //! have a useful shared representation of various math typesetting approaches. This means that, for
 //! instance, free variables are fine.
 
+use crate::operators::Op;
+
 /// An abstract syntax tree representing a mathematical expression.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum AST {
@@ -89,8 +91,8 @@ pub enum Fixity {
 /// exponentiation is normally *not* displayed in LaTeX or Unicode using the caret symbol.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct SymbolBinaryOp {
-    /// The symbol used for the operator.
-    pub symbol: Symbol,
+    /// The operator (and precedence information)
+    pub op: Op,
     /// The fixity of the operator.
     pub fixity: Fixity,
 }
