@@ -29,9 +29,9 @@ impl crate::formatter::Formatter for LatexFormatter {
             ast::BinaryOp::Generic(ast::SymbolBinaryOp { symbol, fixity }) => {
                 let sym = self.format_symbol(symbol);
                 match fixity {
-                    ast::Fixity::Prefix => format!("\\left({} {} {}\\right)", sym, left, right),
-                    ast::Fixity::Infix => format!("\\left({} {} {}\\right)", left, sym, right),
-                    ast::Fixity::Postfix => format!("\\left({} {} {}\\right)", left, right, sym),
+                    ast::Fixity::Prefix => format!("{} {} {}", sym, left, right),
+                    ast::Fixity::Infix => format!("{} {} {}", left, sym, right),
+                    ast::Fixity::Postfix => format!("{} {} {}", left, right, sym),
                 }
             }
             ast::BinaryOp::Power => format!("{}^{{ {} }}", left, right),
@@ -80,13 +80,10 @@ mod tests {
                 Box::new(ast::AST::Number("12.34".to_string())),
             )),
         );
-        // assert_eq!(
-        //     LatexFormatter {
-        //         decimal_separator: ".".into(),
-        //     }
-        //     .format(&tree),
-        //     "".to_string()
-        // );
+        assert_eq!(
+            LatexFormatter {}.format(&tree),
+            r"\frac{ f\left(100, x\right) }{ - 12.34 }".to_string()
+        );
     }
 
     #[test]
@@ -97,10 +94,10 @@ mod tests {
             LatexFormatter::default().format(&tree),
             r"\frac{ 2 }{ \sin\left(\mu\right) + 1 }".to_string()
         );
-        let tree = parser.parse(&"2 / sin mu * 1".to_owned()).unwrap();
+        let tree = parser.parse(&"cos^2(A) = sin^2(B)".to_owned()).unwrap();
         assert_eq!(
             LatexFormatter::default().format(&tree),
-            r"\frac{ 2 }{ \sin\left(\mu\right) } \cdot 1".to_string()
+            r"\cos^2\left(A\right)=\sin^2\left(B\right)".to_string()
         );
         let tree = parser.parse(&"2 / arccos mu + 1".to_owned()).unwrap();
         assert_eq!(

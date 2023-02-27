@@ -7,7 +7,7 @@
 
 use crate::ast::Symbol;
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::string::ToString;
 use strum::{EnumProperty, IntoEnumIterator};
 use strum_macros::{Display, EnumIter, EnumProperty, EnumString};
@@ -18,6 +18,28 @@ use strum_macros::{Display, EnumIter, EnumProperty, EnumString};
 /// implemented currently, but might be in the future.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct SpecialFunction(String);
+
+impl SpecialFunction {
+    /// Produces a symbol for the square of the function.
+    fn square(&self) -> Symbol {
+        Symbol {
+            unicode_repr: format!("{}²", self.0),
+            ascii_repr: format!("{}^2", self.0),
+            latex_repr: format!("\\{}^2", self.0),
+            other_reprs: vec![],
+        }
+    }
+
+    /// Produces a symbol for the inverse of the function.
+    fn inv(&self) -> Symbol {
+        Symbol {
+            unicode_repr: format!("{}⁻¹", self.0),
+            ascii_repr: format!("{}^-1", self.0),
+            latex_repr: format!("\\{}^{{-1}}", self.0),
+            other_reprs: vec![],
+        }
+    }
+}
 
 impl From<SpecialFunction> for Symbol {
     fn from(func: SpecialFunction) -> Self {
@@ -191,8 +213,8 @@ lazy_static! {
     /// `amsmath` is very inconsistent, as you can see. I've only included the operators that
     /// might be used in plaintext: limits, for example, aren't parseable using standard function
     /// syntax.
-    pub static ref SPECIAL_FUNCS: HashMap<String, Symbol> = {
-        let mut syms: HashMap<String, Symbol> = HashMap::new();
+    pub static ref SPECIAL_FUNCS: BTreeMap<String, Symbol> = {
+        let mut syms: BTreeMap<String, Symbol> = BTreeMap::new();
         let names = vec![
             "exp", "log", "ln", "lg",
             "sin", "cos", "tan", "sec", "csc", "cot",
@@ -205,7 +227,10 @@ lazy_static! {
             "inf", "sup"
         ];
         for name in names {
-            syms.insert(name.to_string(), SpecialFunction(name.to_string()).into());
+            let spf = SpecialFunction(name.to_string());
+            syms.insert(format!("{}^2", name), spf.square());
+            syms.insert(format!("{}^-1", name), spf.inv());
+            syms.insert(name.to_string(), spf.into());
         }
         syms
     };
@@ -304,7 +329,7 @@ lazy_static! {
         for (_k, sym) in LATIN_SYMBOLS.clone().drain() {
             symbols.push(sym);
         }
-        for (_k, sym) in SPECIAL_FUNCS.clone().drain() {
+        for (_k, sym) in SPECIAL_FUNCS.clone().into_iter() {
             symbols.push(sym);
         }
         symbols.extend_from_slice(&*MISC.as_slice());

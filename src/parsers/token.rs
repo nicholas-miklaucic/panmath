@@ -80,6 +80,24 @@ impl Tokenizer {
                 }
             }
 
+            // now match known functions
+            // iterate in reverse alphabetical order. This
+            // means, for ties like cos^2 and cos, the longer one
+            // goes first.
+            for (_name, sym) in symbols::SPECIAL_FUNCS.iter().rev() {
+                if let Some(repr) = sym.match_front(rest) {
+                    rest = &rest[repr.len()..];
+                    // push previous unknown token onto list
+                    if !curr_unknown.is_empty() {
+                        tokens.push(Token::Operand(curr_unknown.into()));
+                        curr_unknown = String::new();
+                    }
+                    tokens.push(Token::Function(sym.clone()));
+                    // continue outer parsing loop
+                    continue 'parse;
+                }
+            }
+
             // This part is very thorny: we need to handle unary plus/minus operators correctly. The
             // weird thing is that this depends on the state of the parsing so far: specifically,
             // the last token matched. If it's the start, an operator, a left delimiter, or a
@@ -103,6 +121,7 @@ impl Tokenizer {
                     }
                 }
             };
+
             // match operators next: they tend not to conflict with other
             // things, and the bigger words will get mangled by future
             // transformations
@@ -125,21 +144,6 @@ impl Tokenizer {
                         curr_unknown = String::new();
                     }
                     tokens.push(Token::Operator(op.clone()));
-                    // continue outer parsing loop
-                    continue 'parse;
-                }
-            }
-
-            // now match known functions
-            for (_name, sym) in symbols::SPECIAL_FUNCS.iter() {
-                if let Some(repr) = sym.match_front(rest) {
-                    rest = &rest[repr.len()..];
-                    // push previous unknown token onto list
-                    if !curr_unknown.is_empty() {
-                        tokens.push(Token::Operand(curr_unknown.into()));
-                        curr_unknown = String::new();
-                    }
-                    tokens.push(Token::Function(sym.clone()));
                     // continue outer parsing loop
                     continue 'parse;
                 }
@@ -185,7 +189,7 @@ mod tests {
     fn test_tokenizing() {
         let expr = "(1 + 2) ^ mu";
 
-        println!("{:#?}", Tokenizer::default().tokenize(expr));
-        assert_eq!(0, 1);
+        // println!("{:#?}", Tokenizer::default().tokenize(expr));
+        // assert_eq!(0, 1);
     }
 }
