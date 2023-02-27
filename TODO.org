@@ -1,0 +1,6 @@
+#+title: Todo
+
+ - [ ] Precedence info included in the AST so parentheses can be properly done
+ - [ ] Square roots
+ - [ ] Make the relations into actual operators
+ - [ ] Aligns?
